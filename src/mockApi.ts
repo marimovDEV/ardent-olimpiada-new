@@ -570,15 +570,21 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             const password = (body.password || '').toLowerCase();
             const referer = init?.headers ? (init.headers as any)['Referer'] || '' : '';
 
+            // Check if it's a phone number (starts with + or is only digits)
+            const isPhone = /^\+?[\d\s]+$/.test(username);
+
             if (username === 'admin' && password === 'admin') {
                 user = MOCK_USER_ADMIN;
             } else if (username === 'teacher' && password === 'teacher') {
                 user = MOCK_USER_TEACHER;
+            } else if (isPhone) {
+                // Phone numbers ALWAYS get student profile
+                user = MOCK_USER_STUDENT;
             } else if (referer.includes('/teacher/') || url.includes('teacher')) {
-                // If on teacher dashboard, still allow teacher access for demo convenience
+                // If on teacher dashboard and not a phone, still allow teacher access for demo convenience
                 user = MOCK_USER_TEACHER;
             } else {
-                // Default to student for any other input (e.g., phone numbers)
+                // Default to student for any other input
                 user = MOCK_USER_STUDENT;
             }
 
