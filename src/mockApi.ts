@@ -567,14 +567,18 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         if (url.includes('/api/auth/login/')) {
             let user = MOCK_USER_STUDENT;
             const username = (body.username || body.phone || '').toLowerCase();
+            const password = (body.password || '').toLowerCase();
             const referer = init?.headers ? (init.headers as any)['Referer'] || '' : '';
 
-            if (username.includes('admin')) {
+            if (username === 'admin' && password === 'admin') {
                 user = MOCK_USER_ADMIN;
-            } else if (username.includes('teacher') || referer.includes('/teacher/') || url.includes('teacher')) {
+            } else if (username === 'teacher' && password === 'teacher') {
+                user = MOCK_USER_TEACHER;
+            } else if (referer.includes('/teacher/') || url.includes('teacher')) {
+                // If on teacher dashboard, still allow teacher access for demo convenience
                 user = MOCK_USER_TEACHER;
             } else {
-                // Default to student if no specific keywords or context
+                // Default to student for any other input (e.g., phone numbers)
                 user = MOCK_USER_STUDENT;
             }
 
