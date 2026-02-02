@@ -485,8 +485,16 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         if (url.includes('/api/auth/login/')) {
             let user = MOCK_USER_STUDENT;
             const username = (body.username || body.phone || '').toLowerCase();
-            if (username.includes('teacher')) user = MOCK_USER_TEACHER;
-            else if (username.includes('admin')) user = MOCK_USER_ADMIN;
+            const referer = init?.headers ? (init.headers as any)['Referer'] || '' : '';
+
+            if (username.includes('admin')) {
+                user = MOCK_USER_ADMIN;
+            } else if (username.includes('teacher') || referer.includes('/teacher/') || url.includes('teacher')) {
+                user = MOCK_USER_TEACHER;
+            } else {
+                // If the user is on the teacher login page, default to teacher role even if username is random
+                user = MOCK_USER_TEACHER;
+            }
 
             localStorage.setItem('user', JSON.stringify(user));
             return jsonResponse({ success: true, token: "mock-jwt", user });
