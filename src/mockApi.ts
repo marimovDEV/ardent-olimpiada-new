@@ -337,7 +337,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             salary: p.salary_range,
             courses_count: 5,
             roadmap_link: `/professions/${p.id}`,
-            icon: p.icon.toLowerCase()
+            icon: p.icon.charAt(0).toUpperCase() + p.icon.slice(1)
         })));
         if (url.includes('/api/homepage/testimonials/')) return jsonResponse(MOCK_DATA.testimonials.map(t => ({
             ...t,
@@ -429,6 +429,14 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
                 const idMatch = url.match(/\/courses\/(\d+)\/$/);
                 if (idMatch) return jsonResponse(MOCK_COURSES_LEGACY.find(c => c.id == parseInt(idMatch[1])) || { detail: "Not found" }, idMatch ? 200 : 404);
                 return jsonResponse({ results: MOCK_COURSES_LEGACY });
+            }
+        }
+
+        if (url.includes('/api/test-results/')) return jsonResponse({ results: [] });
+        if (url.includes('/api/certificates/my-certificates/')) return jsonResponse({ results: [] });
+        if (url.includes('/api/olympiads/')) {
+            if (url.endsWith('/api/olympiads/') || url.includes('/api/olympiads/?')) {
+                return jsonResponse({ results: MOCK_OLYMPIADS_LEGACY });
             }
         }
 
