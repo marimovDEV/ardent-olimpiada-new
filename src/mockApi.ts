@@ -299,7 +299,18 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
     await new Promise(r => setTimeout(r, 300));
 
     try {
+        // Helper to manage registrations in local storage for demo persistence
+        const getRegistrations = () => JSON.parse(localStorage.getItem('demo_registrations') || '[]');
+        const saveRegistration = (reg: any) => {
+            const regs = getRegistrations();
+            regs.push(reg);
+            localStorage.setItem('demo_registrations', JSON.stringify(regs));
+        };
+        const isRegistered = (olympiadId: number) => getRegistrations().some((r: any) => r.olympiad_id === olympiadId);
+        const getResult = (olympiadId: number) => JSON.parse(localStorage.getItem(`demo_result_${olympiadId}`) || 'null');
+
         // --- CMS ENDPOINTS ---
+        // ... (existing CMS endpoints)
         if (url.includes('/api/homepage/get_config/')) return jsonResponse(MOCK_DATA.homepageConfig);
         if (url.includes('/api/homepage/hero/')) return jsonResponse(MOCK_HERO);
         if (url.includes('/api/homepage/stats/')) return jsonResponse(MOCK_STATS_CONFIG);
@@ -401,6 +412,30 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             return jsonResponse({ user });
         }
 
+        // --- WALLET ---
+        if (url.includes('/api/wallet/purchase/')) {
+            const body = JSON.parse(init?.body as string || '{}');
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                const olympiad = MOCK_DATA.upcomingOlympiads.find(o => o.id === body.id) || MOCK_OLYMPIADS_LEGACY[0];
+                const price = parseFloat(olympiad.price || '0');
+
+                if (user.balance >= price) {
+                    user.balance -= price;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    saveRegistration({ olympiad_id: body.id, created_at: new Date().toISOString() });
+                    return jsonResponse({
+                        success: true,
+                        message: "To'lov muvaffaqiyatli amalga oshirildi va ro'yxatdan o'tdingiz.",
+                        balance: user.balance
+                    });
+                } else {
+                    return jsonResponse({ success: false, error: "Mablag' yetarli emas" }, 400);
+                }
+            }
+        }
+
         // --- COURSES & LEARNING ---
         if (url.includes('/learning_state/')) return jsonResponse(MOCK_LEARNING_STATE);
         if (url.includes('/api/courses/my_courses/')) {
@@ -434,9 +469,86 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
         if (url.includes('/api/test-results/')) return jsonResponse({ results: [] });
         if (url.includes('/api/certificates/my-certificates/')) return jsonResponse({ results: [] });
+
+        // --- OLYMPIADS ---
+        if (url.includes('/api/olympiads/my_registrations/')) {
+            const regs = getRegistrations();
+            const results = regs.map((r: any) => ({
+                id: r.olympiad_id,
+                olympiad: MOCK_DATA.upcomingOlympiads.find(o => o.id === r.olympiad_id) || MOCK_OLYMPIADS_LEGACY[0],
+                created_at: r.created_at
+            }));
+            return jsonResponse(results);
+        }
+
+        if (url.includes('/api/olympiads/') && url.includes('/start/')) return jsonResponse({ success: true });
+        if (url.includes('/api/olympiads/') && url.includes('/questions/')) {
+            const olympiadId = parseInt(url.match(/\/olympiads\/(\d+)\//)?.[1] || '0');
+            const olympiad = MOCK_DATA.upcomingOlympiads.find(o => o.id === olympiadId) || MOCK_OLYMPIADS_LEGACY[0];
+            return jsonResponse({
+                olympiad,
+                questions: [
+                    { id: 1, text: "2 + 2 = ?", type: "MCQ", options: ["2", "3", "4", "5"], points: 10 },
+                    { id: 2, text: "Python-ning yaratuvchisi kim?", type: "MCQ", options: ["Steve Jobs", "Guido van Rossum", "Bill Gates", "Mark Zuckerberg"], points: 10 },
+                    { id: 3, text: "Informatika so'zining asosi nima?", type: "MCQ", options: ["Informatsiya va avtomatika", "Internet va texnika", "Kompyuter va mantiq", "Dastur va apparat"], points: 10 },
+                    { id: 4, text: "O'zbekistonning poytaxti qaysi shahar?", type: "MCQ", options: ["Samarqand", "Buxoro", "Toshkent", "Xiva"], points: 10 },
+                    { id: 5, text: "Yorug'lik tezligi qancha?", type: "MCQ", options: ["300,000 km/s", "150,000 km/s", "1,000,000 km/s", "340 m/s"], points: 10 }
+                ]
+            });
+        }
+        if (url.includes('/api/olympiads/') && url.includes('/submit_answer/')) return jsonResponse({ success: true });
+        if (url.includes('/api/olympiads/') && url.includes('/submit/')) {
+            const olympiadId = parseInt(url.match(/\/olympiads\/(\d+)\//)?.[1] || '0');
+            const mockResult = {
+                my_result: {
+                    id: Math.floor(Math.random() * 1000),
+                    student: "Demo User",
+                    score: 90,
+                    percentage: 90,
+                    rank: 1,
+                    time_taken: 350,
+                    status: "COMPLETED",
+                    created_at: new Date().toISOString()
+                },
+                avg_score: 75,
+                participants_count: 125,
+                status: "PUBLISHED",
+                leaderboard: [
+                    { rank: 1, student: "Demo User", region: "Toshkent", score: 90, time_taken: 350 },
+                    { rank: 2, student: "Alisher Navoiy", region: "Samarqand", score: 85, time_taken: 420 },
+                    { rank: 3, student: "Bobur Mirzo", region: "Andijon", score: 80, time_taken: 500 }
+                ]
+            };
+            localStorage.setItem(`demo_result_${olympiadId}`, JSON.stringify(mockResult));
+            return jsonResponse({ success: true, message: "Sizning javoblaringiz qabul qilindi!" });
+        }
+        if (url.includes('/api/olympiads/') && url.includes('/result/')) {
+            const olympiadId = parseInt(url.match(/\/olympiads\/(\d+)\//)?.[1] || '0');
+            const result = getResult(olympiadId);
+            if (result) return jsonResponse(result);
+            return jsonResponse({ detail: "Natija topilmadi" }, 404);
+        }
+
         if (url.includes('/api/olympiads/')) {
+            const idMatch = url.match(/\/olympiads\/(\d+)\//);
+            if (idMatch) {
+                const id = parseInt(idMatch[1]);
+                const olympiad = MOCK_DATA.upcomingOlympiads.find(o => o.id === id) || MOCK_OLYMPIADS_LEGACY.find(o => o.id === id) || MOCK_OLYMPIADS_LEGACY[0];
+                return jsonResponse({
+                    ...olympiad,
+                    is_registered: isRegistered(id),
+                    is_completed: !!getResult(id),
+                    status: getResult(id) ? 'PUBLISHED' : (olympiad.status || 'ONGOING'),
+                    results_published: !!getResult(id)
+                });
+            }
             if (url.endsWith('/api/olympiads/') || url.includes('/api/olympiads/?')) {
-                return jsonResponse({ results: MOCK_OLYMPIADS_LEGACY });
+                const results = MOCK_DATA.upcomingOlympiads.map(o => ({
+                    ...o,
+                    is_registered: isRegistered(o.id),
+                    is_completed: !!getResult(o.id)
+                }));
+                return jsonResponse({ results });
             }
         }
 
