@@ -431,6 +431,33 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
         if (url.includes('/api/support/tickets/')) return jsonResponse({ results: [] });
         if (url.includes('/api/notifications/')) return jsonResponse({ results: [] });
+        if (url.includes('/api/subjects/')) {
+            const subjects = [
+                { id: 1, name: "Matematika", slug: "matematika", description: "Mantiq va hisob-kitob asoslari", icon: "Calculator", color: "bg-blue-600", xp_reward: 100, is_featured: true, is_active: true, order: 1, courses_count: 12, olympiads_count: 5, professions_count: 3 },
+                { id: 2, name: "Fizika", slug: "fizika", description: "Tabiat qonuniyatlarini o'rganing", icon: "Atom", color: "bg-purple-600", xp_reward: 80, is_featured: true, is_active: true, order: 2, courses_count: 8, olympiads_count: 3, professions_count: 2 },
+                { id: 3, name: "Informatika", slug: "informatika", description: "Dasturlash va axborot texnologiyalari", icon: "Code", color: "bg-green-600", xp_reward: 120, is_featured: true, is_active: true, order: 3, courses_count: 15, olympiads_count: 8, professions_count: 5 }
+            ];
+
+            const slugMatch = url.match(/\/subjects\/([^\/]+)\/$/);
+            if (slugMatch) {
+                const slug = slugMatch[1];
+                const subject = subjects.find(s => s.slug === slug || s.id.toString() === slug) || subjects[0];
+                return jsonResponse({
+                    ...subject,
+                    courses: [
+                        { id: 1, title: "Python Asoslari", thumbnail: null, price: 0, level: "BEGINNER", lesson_count: 12 },
+                        { id: 3, title: "Web Dasturlash (Frontend)", thumbnail: null, price: 300000, level: "PROFESSIONAL", lesson_count: 45 }
+                    ],
+                    olympiads: [
+                        { id: 1, title: "Kuzgi Matematika Olimpiadasi", slug: "kuzgi-matematika", start_date: new Date().toISOString(), status: "UPCOMING", price: 50000 }
+                    ],
+                    professions: [
+                        { id: 1, name: "Frontend Dasturchi", icon: "layout", color: "from-blue-500 to-indigo-600", percentage: 85 }
+                    ]
+                });
+            }
+            return jsonResponse({ results: subjects });
+        }
 
         // --- AUTH ---
         if (url.includes('/api/auth/send-code/')) return jsonResponse({ success: true, message: "Code sent" });
