@@ -27,12 +27,22 @@ const MOCK_USER_TEACHER = {
     balance: 1000000,
     role: "TEACHER",
     avatar: "https://github.com/shadcn.png",
+    avatar_url: "https://github.com/shadcn.png",
     is_superuser: false,
     teacher_profile: {
-        bio: "Tajribali matematika o'qituvchisi",
+        bio: "Tajribali matematika o'qituvchisi, 10 yillik tajribaga ega.",
         specialization: "Matematika",
-        verification_status: "APPROVED"
+        experience_years: 10,
+        verification_status: "APPROVED",
+        telegram_username: "@demo_teacher",
+        instagram_username: "@demo_teacher",
+        youtube_channel: "https://youtube.com/@demo",
+        linkedin_profile: "https://linkedin.com/in/demo"
     },
+    subjects: [
+        { id: 1, name: "Matematika", color: "bg-blue-600" },
+        { id: 2, name: "Fizika", color: "bg-purple-600" }
+    ],
     language: "ru"
 };
 
@@ -419,6 +429,76 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             total_lessons: 145
         });
 
+        if (url.includes('/api/teacher/courses/')) return jsonResponse({
+            results: [
+                { id: 1, title: "Python Asoslari", subject: "Informatika", price: "0", is_active: true, students_count: 450, rating: 4.9, thumbnail: null },
+                { id: 3, title: "Web Dasturlash (Frontend)", subject: "Informatika", price: "300000", is_active: true, students_count: 220, rating: 4.7, thumbnail: null },
+                { id: 4, title: "Matematika: Algebra", subject: "Matematika", price: "150000", is_active: false, students_count: 0, rating: 0, thumbnail: null }
+            ]
+        });
+
+        if (url.includes('/api/teacher/olympiads/')) return jsonResponse({
+            results: [
+                { id: 1, title: "Kuzgi Matematika Olimpiadasi", subject: "Matematika", start_time: new Date(Date.now() + 86400000).toISOString(), status: "UPCOMING" },
+                { id: 2, title: "Informatika: Algoritmlar", subject: "Informatika", start_time: new Date(Date.now() - 86400000).toISOString(), status: "ONGOING" }
+            ]
+        });
+
+        if (url.includes('/api/teacher/students/')) return jsonResponse({
+            results: [
+                { id: 1, student_name: "Ali Valiyev", student_phone: "+998901234567", course_title: "Python Asoslari", progress: 85, enrolled_at: "2024-01-10T10:00:00Z" },
+                { id: 2, student_name: "Olim Olimov", student_phone: "+998912345678", course_title: "Web Dasturlash (Frontend)", progress: 45, enrolled_at: "2024-02-01T15:00:00Z" },
+                { id: 3, student_name: "Zuhra Karimova", student_phone: "+998931112233", course_title: "Python Asoslari", progress: 100, enrolled_at: "2023-12-15T09:30:00Z" }
+            ]
+        });
+
+        if (url.includes('/api/wallet/balance/')) return jsonResponse({
+            balance: 1250000,
+            pending_balance: 150000,
+            total_earned: 2500000,
+            total_withdrawn: 1100000,
+            currency: "UZS"
+        });
+
+        if (url.includes('/api/users/me/update_teacher_profile/')) return jsonResponse({ success: true });
+        if (url.includes('/api/users/me/verify_teacher/')) return jsonResponse({ success: true });
+
+        if (url.includes('/api/teacher/courses/')) {
+            const match = url.match(/\/api\/teacher\/courses\/(\d+)\//);
+            if (match) {
+                return jsonResponse({
+                    id: match[1],
+                    title: "Python Asoslari (Tahrirlash)",
+                    subject: "Informatika",
+                    description: "Ushbu kursda siz Python dasturlash tilining barcha asoslarini o'rganasiz.",
+                    modules: [
+                        {
+                            id: 1, title: "1-modul: Kirish", lessons: [
+                                { id: 101, title: "O'rnatish va Sozlash", video_url: "https://youtube.com/watch?v=123", video_duration: 600 },
+                                { id: 102, title: "Sinflar va O'zgaruvchilar", video_url: "https://youtube.com/watch?v=456", video_duration: 900 }
+                            ]
+                        }
+                    ]
+                });
+            }
+        }
+
+        if (url.includes('/api/modules/')) return jsonResponse({ success: true, id: Math.floor(Math.random() * 1000) });
+        if (url.includes('/api/lessons/')) return jsonResponse({ success: true });
+        if (url.includes('/api/lesson-practices/')) return jsonResponse({ success: true });
+        if (url.includes('/api/lesson-tests/')) return jsonResponse({ success: true });
+
+        if (url.includes('/api/olympiads/')) {
+            if (url.includes('/submissions/')) return jsonResponse({
+                results: [
+                    { id: 1, user_id: 1, student: "Ali Valiyev", region: "Toshkent", score: 85, percentage: 85, time_taken: 1200, status: "COMPLETED" },
+                    { id: 2, user_id: 4, student: "Javohir Aliyev", region: "Samarqand", score: 92, percentage: 92, time_taken: 950, status: "COMPLETED" },
+                    { id: 3, user_id: 5, student: "Madina Karimova", region: "Buxoro", score: 0, percentage: 0, time_taken: 0, status: "NOT_STARTED" }
+                ]
+            });
+            if (url.includes('/grade_result/')) return jsonResponse({ success: true, message: "Natija yangilandi" });
+        }
+
         if (url.includes('/api/users/')) {
             if (url.includes('/bulk_status_update/')) return jsonResponse({ success: true, message: "Foydalanuvchilar holati yangilandi" });
             if (url.includes('/bulk_role_update/')) return jsonResponse({ success: true, message: "Foydalanuvchilar roli yangilandi" });
@@ -481,6 +561,8 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         if (url.includes('/api/auth/complete-registration/')) return jsonResponse({ success: true, token: "mock-jwt", user: MOCK_USER_STUDENT });
         if (url.includes('/api/auth/forgot-password/')) return jsonResponse({ success: true, message: "Reset code sent" });
         if (url.includes('/api/auth/verify-reset-code/')) return jsonResponse({ success: true, message: "Code verified" });
+        if (url.includes('/api/auth/upload-avatar/')) return jsonResponse({ success: true, message: "Avatar uploaded" });
+        if (url.includes('/api/auth/profile/') && method === 'PUT') return jsonResponse({ success: true, message: "Profile updated" });
 
         if (url.includes('/api/auth/login/')) {
             let user = MOCK_USER_STUDENT;
