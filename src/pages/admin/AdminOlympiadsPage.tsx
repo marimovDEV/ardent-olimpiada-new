@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, MoreHorizontal, Plus, Trophy, Calendar, Clock, Edit, Trash2, Users, AlertTriangle, Activity } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import axios from "axios";
 import { API_URL, getAuthHeader } from "@/services/api";
@@ -82,9 +82,9 @@ const AdminOlympiadsPage = () => {
 
     useEffect(() => {
         fetchOlympiads();
-    }, []);
+    }, [fetchOlympiads]);
 
-    const fetchOlympiads = async () => {
+    const fetchOlympiads = useCallback(async () => {
         setLoading(true);
         try {
             const res = await axios.get(`${API_URL}/olympiads/`, { headers: getAuthHeader() });
@@ -95,7 +95,7 @@ const AdminOlympiadsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [t, toast]);
 
     const handlePublishResults = async (id: number) => {
         try {
@@ -150,7 +150,7 @@ const AdminOlympiadsPage = () => {
             await axios.patch(`${API_URL}/olympiads/${statusDialog.id}/`, { status: statusDialog.status }, { headers: getAuthHeader() });
 
             // Update local state
-            setOlympiads(olympiads.map(o => o.id === statusDialog.id ? { ...o, status: statusDialog.status as any } : o));
+            setOlympiads(olympiads.map(o => o.id === statusDialog.id ? { ...o, status: statusDialog.status as "DRAFT" | "UPCOMING" | "ONGOING" | "CHECKING" | "PUBLISHED" | "COMPLETED" | "CANCELED" } : o));
 
             toast({ title: t('common.success'), description: "Status muvaffaqiyatli o'zgartirildi" });
             setStatusDialog(null);

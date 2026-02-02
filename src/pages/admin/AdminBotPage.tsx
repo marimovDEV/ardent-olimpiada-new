@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -11,7 +11,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Smartphone, Shield, RefreshCw, Send, Users, Bell, AlertCircle, Settings as SettingsIcon } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { API_URL, getAuthHeader } from "@/services/api";
@@ -32,11 +32,7 @@ const AdminBotPage = () => {
     // Broadcast State
     const [broadcastMessage, setBroadcastMessage] = useState("");
 
-    useEffect(() => {
-        fetchBotConfig();
-    }, []);
-
-    const fetchBotConfig = async () => {
+    const fetchBotConfig = useCallback(async () => {
         try {
             const res = await axios.get(`${API_URL}/bot/config/`, { headers: getAuthHeader() });
             // API returns paginated list or detailed object? 
@@ -59,7 +55,11 @@ const AdminBotPage = () => {
         } catch (err) {
             console.error("Error fetching bot config", err);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchBotConfig();
+    }, [fetchBotConfig]);
 
     const handleSaveConfig = async () => {
         setIsLoading(true);

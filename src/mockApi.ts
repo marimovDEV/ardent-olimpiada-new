@@ -292,7 +292,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
     console.log(`📡 MockAPI: ${method} ${url}`);
 
-    const jsonResponse = (data: any, status = 200) => {
+    const jsonResponse = (data: unknown, status = 200) => {
         return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
     };
 
@@ -301,12 +301,12 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
     try {
         // Helper to manage registrations in local storage for demo persistence
         const getRegistrations = () => JSON.parse(localStorage.getItem('demo_registrations') || '[]');
-        const saveRegistration = (reg: any) => {
+        const saveRegistration = (reg: { olympiad_id: number; created_at: string }) => {
             const regs = getRegistrations();
             regs.push(reg);
             localStorage.setItem('demo_registrations', JSON.stringify(regs));
         };
-        const isRegistered = (olympiadId: number) => getRegistrations().some((r: any) => r.olympiad_id === olympiadId);
+        const isRegistered = (olympiadId: number) => getRegistrations().some((r: { olympiad_id: number }) => r.olympiad_id === olympiadId);
         const getResult = (olympiadId: number) => JSON.parse(localStorage.getItem(`demo_result_${olympiadId}`) || 'null');
 
         // --- CMS ENDPOINTS ---
@@ -438,7 +438,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
                 { id: 3, name: "Informatika", slug: "informatika", description: "Dasturlash va axborot texnologiyalari", icon: "Code", color: "bg-green-600", xp_reward: 120, is_featured: true, is_active: true, order: 3, courses_count: 15, olympiads_count: 8, professions_count: 5 }
             ];
 
-            const slugMatch = url.match(/\/subjects\/([^\/]+)\/$/);
+            const slugMatch = url.match(/\/subjects\/([^/]+)\/$/);
             if (slugMatch) {
                 const slug = slugMatch[1];
                 const subject = subjects.find(s => s.slug === slug || s.id.toString() === slug) || subjects[0];
@@ -544,7 +544,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         // --- OLYMPIADS ---
         if (url.includes('/api/olympiads/my_registrations/')) {
             const regs = getRegistrations();
-            const results = regs.map((r: any) => ({
+            const results = regs.map((r: { olympiad_id: number; created_at: string }) => ({
                 id: r.olympiad_id,
                 olympiad: MOCK_DATA.upcomingOlympiads.find(o => o.id === r.olympiad_id) || MOCK_OLYMPIADS_LEGACY[0],
                 created_at: r.created_at
@@ -623,6 +623,71 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             }
         }
 
+        if (url.includes('/api/admin/stats/')) return jsonResponse({
+            success: true,
+            stats: {
+                finance: {
+                    total_revenue: 45000000,
+                    today_count: 5,
+                    refunded_amount: 1200000
+                }
+            }
+        });
+
+        if (url.includes('/api/payments/')) {
+            const mockPayments = [
+                { id: 1, payment_id: "PAY-001", user: "student_1", amount: 50000, description: "Kuzgi Matematika Olimpiadasi", payment_method: "CLICK", status: "COMPLETED", created_at: new Date().toISOString() },
+                { id: 2, payment_id: "PAY-002", user: "student_2", amount: 300000, description: "Web Dasturlash kursi", payment_method: "PAYME", status: "COMPLETED", created_at: new Date().toISOString() },
+                { id: 3, payment_id: "PAY-003", user: "student_3", amount: 50000, description: "Kuzgi Matematika Olimpiadasi", payment_method: "UZUM", status: "FAILED", created_at: new Date().toISOString() }
+            ];
+            if (method === 'DELETE') return jsonResponse({ success: true });
+            return jsonResponse({ results: mockPayments });
+        }
+
+        if (url.includes('/api/support/')) {
+            const mockTickets = [
+                { id: "1", ticket_number: "T-1001", user: { id: 1, username: "student_1", full_name: "Ali Valiyev", email: "ali@example.com" }, subject: "To'lovda muammo", category: "Payment", priority: "HIGH", status: "OPEN", created_at: new Date().toISOString(), updated_at: new Date().toISOString(), last_message: "To'lov qildim lekin AC tushmadi", messages_count: 1 },
+                { id: "2", ticket_number: "T-1002", user: { id: 2, username: "student_2", full_name: "Olim Olimov", email: "olim@example.com" }, subject: "Kurs ochilmayapti", category: "Technical", priority: "MEDIUM", status: "IN_PROGRESS", created_at: new Date().toISOString(), updated_at: new Date().toISOString(), last_message: "Video darslik yuklanmayapti", messages_count: 3 }
+            ];
+            if (url.includes('/reply/')) return jsonResponse({ success: true, message: "Reply sent" });
+            if (url.includes('/bulk_resolve/')) return jsonResponse({ success: true });
+            if (method === 'PATCH') return jsonResponse({ success: true });
+            return jsonResponse({ results: mockTickets });
+        }
+
+        if (url.includes('/api/bot/config/')) {
+            if (url.includes('/save_config/')) return jsonResponse({ success: true });
+            if (url.includes('/broadcast_message/')) return jsonResponse({ success: true, message: "Xabar barcha foydalanuvchilarga yuborildi" });
+            return jsonResponse({
+                success: true,
+                config: {
+                    bot_token: "8024120169:AAE1-V8G0h_example",
+                    admin_chat_id: "1212795522",
+                    is_active: true
+                }
+            });
+        }
+
+        if (url.includes('/api/olympiads/')) {
+            if (method === 'POST') {
+                if (url.includes('/publish_results/')) return jsonResponse({ success: true, message: "Natijalar muvaffaqiyatli e'lon qilindi!" });
+                if (url.includes('/force_start/')) return jsonResponse({ success: true, message: "Olimpiada boshlandi!" });
+                return jsonResponse({ id: Math.floor(Math.random() * 100) + 10, title: "Yangi Olimpiada", status: "DRAFT" });
+            }
+            if (method === 'PATCH' || method === 'PUT') return jsonResponse({ success: true });
+            if (method === 'DELETE') return jsonResponse({ success: true });
+        }
+
+        if (url.includes('/api/courses/')) {
+            if (method === 'POST') {
+                if (url.includes('/approve/')) return jsonResponse({ success: true });
+                if (url.includes('/reject/')) return jsonResponse({ success: true });
+                return jsonResponse({ id: Math.floor(Math.random() * 100) + 10, title: "Yangi Kurs", status: "DRAFT" });
+            }
+            if (method === 'PUT' || method === 'PATCH') return jsonResponse({ success: true });
+            if (method === 'DELETE') return jsonResponse({ success: true });
+        }
+
         // Fallback
         if (!url.includes('/api/')) return originalFetch(input, init);
 
@@ -638,10 +703,12 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 import axios from 'axios';
 import api from './services/api';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockAdapter = async (config: any) => {
     const url = config.baseURL ? config.baseURL + config.url : config.url;
     const init: RequestInit = {
         method: config.method?.toUpperCase(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         headers: config.headers as any,
         body: config.data,
     };

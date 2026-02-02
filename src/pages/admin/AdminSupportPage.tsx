@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,7 +32,7 @@ import {
     Calendar as CalendarIcon,
     X
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import {
     Tooltip,
@@ -97,13 +97,7 @@ const AdminSupportPage = () => {
     const { toast } = useToast();
     const { t } = useTranslation();
 
-    useEffect(() => {
-        fetchTickets();
-        const interval = setInterval(fetchTickets, 30000); // Admin poll every 30s
-        return () => clearInterval(interval);
-    }, []);
-
-    const fetchTickets = async () => {
+    const fetchTickets = useCallback(async () => {
         try {
             const res = await axios.get(`${API_URL}/support/`, { headers: getAuthHeader() });
             // Handle pagination if results is wrapped
@@ -114,7 +108,13 @@ const AdminSupportPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchTickets();
+        const interval = setInterval(fetchTickets, 30000); // Admin poll every 30s
+        return () => clearInterval(interval);
+    }, [fetchTickets]);
 
     // FILTER LOGIC
     const filteredTickets = tickets.filter(ticket => {
@@ -143,7 +143,7 @@ const AdminSupportPage = () => {
             fetchTickets();
 
             // Update selected ticket in place to show in dialog
-            setSelectedTicket(prev => prev ? { ...prev, status: newStatus as any } : null);
+            setSelectedTicket(prev => prev ? { ...prev, status: newStatus as "OPEN" | "IN_PROGRESS" | "RESOLVED" | "ESCALATED" | "PENDING" } : null);
         } catch (error) {
             toast({ title: t('common.error'), description: t('admin.statusUpdateError'), variant: "destructive" });
         }

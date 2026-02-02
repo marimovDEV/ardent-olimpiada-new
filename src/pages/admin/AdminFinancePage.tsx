@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +31,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { API_URL, getAuthHeader } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
+import { FileText, Download, DollarSign, TrendingUp, TrendingDown, Search, Loader2, MoreVertical, Eye, RefreshCcw, Trash2, BookOpen, Trophy } from "lucide-react";
+
+// Mock Finance Trend Chart component
+const FinanceTrendChart = () => (
+    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+        <h3 className="text-lg font-bold mb-4">Mablag'lar oqimi</h3>
+        <div className="h-64 bg-muted/30 rounded-xl flex items-end justify-between p-4 gap-2">
+            {[40, 60, 45, 90, 65, 80, 70].map((h, i) => (
+                <div key={i} className="bg-primary/60 w-full rounded-t-sm" style={{ height: `${h}%` }}></div>
+            ))}
+        </div>
+    </div>
+);
 
 interface Transaction {
     id: number;
@@ -71,9 +85,9 @@ const AdminFinancePage = () => {
     useEffect(() => {
         fetchTransactions();
         fetchFinanceStats();
-    }, []);
+    }, [fetchTransactions, fetchFinanceStats]);
 
-    const fetchTransactions = async () => {
+    const fetchTransactions = useCallback(async () => {
         setLoading(true);
         try {
             const res = await axios.get(`${API_URL}/payments/`, { headers: getAuthHeader() });
@@ -84,9 +98,9 @@ const AdminFinancePage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [t, toast]);
 
-    const fetchFinanceStats = async () => {
+    const fetchFinanceStats = useCallback(async () => {
         try {
             const res = await axios.get(`${API_URL}/admin/stats/`, { headers: getAuthHeader() });
             if (res.data.success) {
@@ -99,7 +113,7 @@ const AdminFinancePage = () => {
         } catch (error) {
             console.error("Stats error", error);
         }
-    };
+    }, []);
 
     // FILTER LOGIC
     const filteredTransactions = transactions.filter(trx => {
