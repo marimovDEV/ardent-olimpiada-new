@@ -298,6 +298,15 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
     await new Promise(r => setTimeout(r, 300));
 
+    let body: any = {};
+    if (init?.body) {
+        if (typeof init.body === 'string') {
+            try { body = JSON.parse(init.body); } catch (e) { body = {}; }
+        } else {
+            body = init.body;
+        }
+    }
+
     try {
         // Helper to manage registrations in local storage for demo persistence
         const getRegistrations = () => JSON.parse(localStorage.getItem('demo_registrations') || '[]');
@@ -474,7 +483,6 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         if (url.includes('/api/auth/verify-reset-code/')) return jsonResponse({ success: true, message: "Code verified" });
 
         if (url.includes('/api/auth/login/')) {
-            const body = init?.body ? JSON.parse(init.body as string) : {};
             let user = MOCK_USER_STUDENT;
             const username = (body.username || body.phone || '').toLowerCase();
             if (username.includes('teacher')) user = MOCK_USER_TEACHER;
@@ -491,7 +499,6 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
         // --- WALLET ---
         if (url.includes('/api/wallet/purchase/')) {
-            const body = JSON.parse(init?.body as string || '{}');
             const userStr = localStorage.getItem('user');
             if (userStr) {
                 const user = JSON.parse(userStr);
