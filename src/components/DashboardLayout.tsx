@@ -25,26 +25,15 @@ const DashboardLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
 
-    // Strict Role Check for Student Dashboard
+    // Authentication Check Only - No Role-Based Redirects
     useEffect(() => {
         const userStr = localStorage.getItem('user');
         if (!userStr) {
             navigate('/auth/login');
             return;
         }
-        try {
-            const user = JSON.parse(userStr);
-            if (user.role === 'TEACHER') {
-                navigate('/teacher/dashboard');
-            } else if (user.role === 'ADMIN') {
-                navigate('/admin/dashboard');
-            } else if (user.role !== 'STUDENT') {
-                // If unknown role, go to login
-                navigate('/auth/login');
-            }
-        } catch (e) {
-            navigate('/auth/login');
-        }
+        // Allow any authenticated user to access student dashboard
+        // Teachers and Admins can view student perspective if needed
     }, [navigate]);
 
     // Close mobile menu on route change

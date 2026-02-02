@@ -573,20 +573,36 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             // Check if it's a phone number (starts with + or is only digits)
             const isPhone = /^\+?[\d\s]+$/.test(username);
 
+            console.log('🔐 LOGIN DEBUG:', {
+                username,
+                password,
+                referer,
+                url,
+                isPhone,
+                'username.trim()': username.trim()
+            });
+
             if (username === 'admin' && password === 'admin') {
                 user = MOCK_USER_ADMIN;
+                console.log('✅ Assigned ADMIN role');
             } else if (username === 'teacher' && password === 'teacher') {
                 user = MOCK_USER_TEACHER;
+                console.log('✅ Assigned TEACHER role');
             } else if (isPhone) {
                 // Phone numbers ALWAYS get student profile
                 user = MOCK_USER_STUDENT;
+                console.log('✅ Assigned STUDENT role (phone detected)');
             } else if (referer.includes('/teacher/') || url.includes('teacher')) {
                 // If on teacher dashboard and not a phone, still allow teacher access for demo convenience
                 user = MOCK_USER_TEACHER;
+                console.log('✅ Assigned TEACHER role (teacher portal detected)');
             } else {
                 // Default to student for any other input
                 user = MOCK_USER_STUDENT;
+                console.log('✅ Assigned STUDENT role (default)');
             }
+
+            console.log('👤 Final user role:', user.role);
 
             localStorage.setItem('user', JSON.stringify(user));
             return jsonResponse({ success: true, token: "mock-jwt", user });
