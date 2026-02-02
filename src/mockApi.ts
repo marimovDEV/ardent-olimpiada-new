@@ -411,6 +411,12 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         });
 
         if (url.includes('/api/users/')) {
+            if (url.includes('/bulk_status_update/')) return jsonResponse({ success: true, message: "Foydalanuvchilar holati yangilandi" });
+            if (url.includes('/bulk_role_update/')) return jsonResponse({ success: true, message: "Foydalanuvchilar roli yangilandi" });
+
+            if (method === 'PATCH' || method === 'PUT' || method === 'DELETE') return jsonResponse({ success: true });
+            if (method === 'POST') return jsonResponse({ id: 10, username: "new_user", role: "STUDENT", is_active: true });
+
             const roleParam = url.includes('role=TEACHER') ? 'TEACHER' : null;
             const mockUsers = [
                 { id: 1, username: "student_1", first_name: "Ali", last_name: "Valiyev", role: "STUDENT", is_active: true, date_joined: "2024-01-10T10:00:00Z", phone: "+998901234567" },
@@ -598,6 +604,35 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             const result = getResult(olympiadId);
             if (result) return jsonResponse(result);
             return jsonResponse({ detail: "Natija topilmadi" }, 404);
+        }
+
+        if (url.includes('/api/homepage/update_config/')) return jsonResponse({ success: true, message: "Config updated" });
+
+        if (url.includes('/api/home-stats/')) {
+            if (method === 'DELETE') return jsonResponse({ success: true });
+            if (method === 'POST') return jsonResponse({ id: Math.floor(Math.random() * 1000), ...body });
+        }
+
+        if (url.includes('/api/home-steps/')) {
+            if (method === 'DELETE') return jsonResponse({ success: true });
+            if (method === 'POST') return jsonResponse({ id: Math.floor(Math.random() * 1000), ...body });
+            return jsonResponse([]);
+        }
+
+        if (url.includes('/api/home-advantages/')) {
+            if (method === 'DELETE') return jsonResponse({ success: true });
+            if (method === 'POST') return jsonResponse({ id: Math.floor(Math.random() * 1000), ...body });
+            return jsonResponse([]);
+        }
+
+        if (url.includes('/api/banners/')) {
+            if (method === 'DELETE') return jsonResponse({ success: true });
+            if (method === 'POST') return jsonResponse({ id: Math.floor(Math.random() * 1000), title: 'New Banner' });
+        }
+
+        if (url.includes('/api/testimonials/')) {
+            if (method === 'DELETE') return jsonResponse({ success: true });
+            if (method === 'POST') return jsonResponse({ id: Math.floor(Math.random() * 1000), name: 'New Testimonial' });
         }
 
         if (url.includes('/api/olympiads/')) {

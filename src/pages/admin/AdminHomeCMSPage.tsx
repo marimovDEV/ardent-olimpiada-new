@@ -12,6 +12,156 @@ import { Trash2, Plus, GripVertical, Save, Edit2, Image as ImageIcon } from "luc
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 
+// --- Sub-components (Forms) ---
+
+const StatsForm = ({ onSuccess }: { onSuccess: () => void }) => {
+    const { t } = useTranslation();
+    const [data, setData] = useState({ label: '', value: '', icon: 'Users', order: 0 });
+    const handleSubmit = async () => {
+        try { await homepageService.createStat(data); onSuccess(); toast.success(t('common.added')); }
+        catch { toast.error(t('common.error')); }
+    };
+    return (
+        <div className="space-y-4 py-4">
+            <DialogHeader><DialogTitle>{t('admin.addStat')}</DialogTitle></DialogHeader>
+            <Input placeholder={t('admin.labelPlaceholder')} value={data.label} onChange={e => setData({ ...data, label: e.target.value })} />
+            <Input placeholder={t('admin.valuePlaceholder')} value={data.value} onChange={e => setData({ ...data, value: e.target.value })} />
+            <Input placeholder={t('admin.iconPlaceholder')} value={data.icon} onChange={e => setData({ ...data, icon: e.target.value })} />
+            <Input type="number" placeholder={t('admin.order')} value={data.order} onChange={e => setData({ ...data, order: +e.target.value })} />
+            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
+        </div>
+    );
+};
+
+
+const StepsForm = ({ onSuccess }: { onSuccess: () => void }) => {
+    const { t } = useTranslation();
+    const [data, setData] = useState({ title: '', description: '', icon: 'Check', order: 0 });
+    const handleSubmit = async () => {
+        try { await homepageService.createStep(data); onSuccess(); toast.success(t('common.added')); }
+        catch { toast.error(t('common.error')); }
+    };
+    return (
+        <div className="space-y-4 py-4">
+            <DialogHeader><DialogTitle>{t('admin.addStep')}</DialogTitle></DialogHeader>
+            <Input placeholder={t('common.title')} value={data.title} onChange={e => setData({ ...data, title: e.target.value })} />
+            <Textarea placeholder={t('common.description')} value={data.description} onChange={e => setData({ ...data, description: e.target.value })} />
+            <Input placeholder={t('admin.iconPlaceholder')} value={data.icon} onChange={e => setData({ ...data, icon: e.target.value })} />
+            <Input type="number" placeholder={t('admin.order')} value={data.order} onChange={e => setData({ ...data, order: +e.target.value })} />
+            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
+        </div>
+    );
+};
+
+const AdvantageForm = ({ onSuccess }: { onSuccess: () => void }) => {
+    const { t } = useTranslation();
+    const [data, setData] = useState({ title: '', description: '', icon: 'Shield', order: 0 });
+    const handleSubmit = async () => {
+        try { await homepageService.createAdvantage(data); onSuccess(); toast.success(t('common.added')); }
+        catch { toast.error(t('common.error')); }
+    };
+    return (
+        <div className="space-y-4 py-4">
+            <DialogHeader><DialogTitle>{t('admin.addAdvantage')}</DialogTitle></DialogHeader>
+            <Input placeholder={t('common.title')} value={data.title} onChange={e => setData({ ...data, title: e.target.value })} />
+            <Textarea placeholder={t('common.description')} value={data.description} onChange={e => setData({ ...data, description: e.target.value })} />
+            <Input placeholder={t('admin.iconPlaceholder')} value={data.icon} onChange={e => setData({ ...data, icon: e.target.value })} />
+            <Input type="number" placeholder={t('admin.order')} value={data.order} onChange={e => setData({ ...data, order: +e.target.value })} />
+            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
+        </div>
+    );
+};
+
+const BannerForm = ({ onSuccess }: { onSuccess: () => void }) => {
+    const { t } = useTranslation();
+    const [title, setTitle] = useState("");
+    const [subtitle, setSubtitle] = useState("");
+    const [image, setImage] = useState<File | null>(null);
+
+    const handleSubmit = async () => {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('subtitle', subtitle);
+        if (image) formData.append('image', image);
+
+        try { await homepageService.createBanner(formData); onSuccess(); toast.success(t('common.added')); }
+        catch { toast.error(t('common.error')); }
+    };
+
+    return (
+        <div className="space-y-4 py-4">
+            <DialogHeader><DialogTitle>{t('admin.addBanner')}</DialogTitle></DialogHeader>
+            <Input placeholder={t('common.title')} value={title} onChange={e => setTitle(e.target.value)} />
+            <Textarea placeholder={t('admin.heroSubtitleLabel')} value={subtitle} onChange={e => setSubtitle(e.target.value)} />
+            <div className="grid gap-2">
+                <Label>{t('admin.imageDesktop')}</Label>
+                <Input type="file" onChange={e => setImage(e.target.files?.[0] || null)} />
+            </div>
+            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
+        </div>
+    );
+};
+
+const TestimonialForm = ({ onSuccess }: { onSuccess: () => void }) => {
+    const { t } = useTranslation();
+    const [name, setName] = useState("");
+    const [profession, setProfession] = useState("");
+    const [textUz, setTextUz] = useState("");
+    const [image, setImage] = useState<File | null>(null);
+    const [instagramUrl, setInstagramUrl] = useState("");
+
+    const handleSubmit = async () => {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('profession', profession);
+        formData.append('text_uz', textUz);
+        formData.append('text_ru', textUz);
+        if (image) formData.append('image', image);
+        if (instagramUrl) formData.append('instagram_url', instagramUrl);
+
+        try {
+            await homepageService.createTestimonial(formData);
+            onSuccess();
+            toast.success(t('common.added'));
+        }
+        catch (error: any) {
+            console.error('Testimonial creation error:', error);
+            const errorMessage = error.response?.data?.detail || error.response?.data?.error || t('common.error');
+            toast.error(errorMessage);
+        }
+    };
+
+    return (
+        <div className="space-y-4 py-4">
+            <DialogHeader><DialogTitle>{t('admin.addTestimonial')}</DialogTitle></DialogHeader>
+            <Input placeholder={t('admin.fullNamePlaceholder')} value={name} onChange={e => setName(e.target.value)} />
+            <Input placeholder={t('admin.professionPlaceHolder')} value={profession} onChange={e => setProfession(e.target.value)} />
+            <Textarea placeholder={t('admin.testimonialTextPlaceholder')} value={textUz} onChange={e => setTextUz(e.target.value)} />
+
+            <div className="grid gap-2">
+                <Label>Video muqovasi (Thumbnail)</Label>
+                <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setImage(e.target.files?.[0] || null)}
+                />
+            </div>
+
+            <div className="grid gap-2">
+                <Label>Instagram Video URL</Label>
+                <Input
+                    type="url"
+                    placeholder="https://www.instagram.com/reel/..."
+                    value={instagramUrl}
+                    onChange={e => setInstagramUrl(e.target.value)}
+                />
+            </div>
+
+            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
+        </div>
+    );
+};
+
 const AdminHomeCMSPage = () => {
     const { t } = useTranslation();
     const [config, setConfig] = useState<HomePageConfig | null>(null);
@@ -208,6 +358,50 @@ const AdminHomeCMSPage = () => {
                     </Card>
                 </TabsContent>
 
+                {/* BANNERS */}
+                <TabsContent value="banners">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold">{t('admin.banners')}</h2>
+                        <Dialog>
+                            <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> {t('common.add')}</Button></DialogTrigger>
+                            <DialogContent><BannerForm onSuccess={fetchData} /></DialogContent>
+                        </Dialog>
+                    </div>
+                    <div className="grid gap-4">
+                        {banners.map(item => (
+                            <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                                <div className="flex items-center gap-4">
+                                    {item.image ? (
+                                        <img src={item.image} alt={item.title} className="w-16 h-10 object-cover rounded-lg" />
+                                    ) : <div className="w-16 h-10 bg-muted rounded-lg flex items-center justify-center"><ImageIcon className="w-4 h-4 text-muted-foreground" /></div>}
+                                    <div>
+                                        <div className="font-bold">{item.title}</div>
+                                        <div className="text-sm text-muted-foreground line-clamp-1">{item.subtitle}</div>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={async () => {
+                                    if (confirm(t('common.deleteConfirm'))) {
+                                        try {
+                                            await homepageService.deleteBanner(item.id);
+                                            fetchData();
+                                            toast.success(t('common.deleted'));
+                                        } catch (e) {
+                                            toast.error(t('common.error'));
+                                        }
+                                    }
+                                }} className="text-destructive">
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ))}
+                        {banners.length === 0 && (
+                            <div className="text-center py-10 text-muted-foreground border border-dashed rounded-lg">
+                                {t('admin.noBanners')}
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
+
                 {/* STATS */}
                 <TabsContent value="stats">
                     <div className="flex justify-between items-center mb-4">
@@ -319,164 +513,5 @@ const AdminHomeCMSPage = () => {
     );
 };
 
-// --- Sub-components (Forms) ---
-
-const StatsForm = ({ onSuccess }: { onSuccess: () => void }) => {
-    const { t } = useTranslation();
-    const [data, setData] = useState({ label: '', value: '', icon: 'Users', order: 0 });
-    const handleSubmit = async () => {
-        try { await homepageService.createStat(data); onSuccess(); toast.success(t('common.added')); }
-        catch { toast.error(t('common.error')); }
-    };
-    return (
-        <div className="space-y-4 py-4">
-            <DialogHeader><DialogTitle>{t('admin.addStat')}</DialogTitle></DialogHeader>
-            <Input placeholder={t('admin.labelPlaceholder')} value={data.label} onChange={e => setData({ ...data, label: e.target.value })} />
-            <Input placeholder={t('admin.valuePlaceholder')} value={data.value} onChange={e => setData({ ...data, value: e.target.value })} />
-            <Input placeholder={t('admin.iconPlaceholder')} value={data.icon} onChange={e => setData({ ...data, icon: e.target.value })} />
-            <Input type="number" placeholder={t('admin.order')} value={data.order} onChange={e => setData({ ...data, order: +e.target.value })} />
-            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
-        </div>
-    );
-};
-
-
-const StepsForm = ({ onSuccess }: { onSuccess: () => void }) => {
-    const { t } = useTranslation();
-    const [data, setData] = useState({ title: '', description: '', icon: 'Check', order: 0 });
-    const handleSubmit = async () => {
-        try { await homepageService.createStep(data); onSuccess(); toast.success(t('common.added')); }
-        catch { toast.error(t('common.error')); }
-    };
-    return (
-        <div className="space-y-4 py-4">
-            <DialogHeader><DialogTitle>{t('admin.addStep')}</DialogTitle></DialogHeader>
-            <Input placeholder={t('common.title')} value={data.title} onChange={e => setData({ ...data, title: e.target.value })} />
-            <Textarea placeholder={t('common.description')} value={data.description} onChange={e => setData({ ...data, description: e.target.value })} />
-            <Input placeholder={t('admin.iconPlaceholder')} value={data.icon} onChange={e => setData({ ...data, icon: e.target.value })} />
-            <Input type="number" placeholder={t('admin.order')} value={data.order} onChange={e => setData({ ...data, order: +e.target.value })} />
-            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
-        </div>
-    );
-};
-
-const AdvantageForm = ({ onSuccess }: { onSuccess: () => void }) => {
-    const { t } = useTranslation();
-    const [data, setData] = useState({ title: '', description: '', icon: 'Shield', order: 0 });
-    const handleSubmit = async () => {
-        try { await homepageService.createAdvantage(data); onSuccess(); toast.success(t('common.added')); }
-        catch { toast.error(t('common.error')); }
-    };
-    return (
-        <div className="space-y-4 py-4">
-            <DialogHeader><DialogTitle>{t('admin.addAdvantage')}</DialogTitle></DialogHeader>
-            <Input placeholder={t('common.title')} value={data.title} onChange={e => setData({ ...data, title: e.target.value })} />
-            <Textarea placeholder={t('common.description')} value={data.description} onChange={e => setData({ ...data, description: e.target.value })} />
-            <Input placeholder={t('admin.iconPlaceholder')} value={data.icon} onChange={e => setData({ ...data, icon: e.target.value })} />
-            <Input type="number" placeholder={t('admin.order')} value={data.order} onChange={e => setData({ ...data, order: +e.target.value })} />
-            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
-        </div>
-    );
-};
-
-
-// ... existing forms ...
-
-const BannerForm = ({ onSuccess }: { onSuccess: () => void }) => {
-    const { t } = useTranslation();
-    // Basic implementation for MVP - supports creating without File Upload for now (url) or add file upload later
-    // Actually standard forms need File Upload. Let's use simple text inputs for MVP or implement proper file handling
-    // For now, let's assume image upload via separate endpoint or just text url if external, 
-    // BUT we defined ImageField in backend. We need FormData.
-    const [title, setTitle] = useState("");
-    const [subtitle, setSubtitle] = useState("");
-    const [image, setImage] = useState<File | null>(null);
-
-    const handleSubmit = async () => {
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('subtitle', subtitle);
-        if (image) formData.append('image', image);
-
-        try { await homepageService.createBanner(formData); onSuccess(); toast.success(t('common.added')); }
-        catch { toast.error(t('common.error')); }
-    };
-
-    return (
-        <div className="space-y-4 py-4">
-            <DialogHeader><DialogTitle>{t('admin.addBanner')}</DialogTitle></DialogHeader>
-            <Input placeholder={t('common.title')} value={title} onChange={e => setTitle(e.target.value)} />
-            <Textarea placeholder={t('admin.heroSubtitleLabel')} value={subtitle} onChange={e => setSubtitle(e.target.value)} />
-            <div className="grid gap-2">
-                <Label>{t('admin.imageDesktop')}</Label>
-                <Input type="file" onChange={e => setImage(e.target.files?.[0] || null)} />
-            </div>
-            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
-        </div>
-    );
-};
-
-const TestimonialForm = ({ onSuccess }: { onSuccess: () => void }) => {
-    const { t } = useTranslation();
-    const [name, setName] = useState("");
-    const [profession, setProfession] = useState("");
-    const [textUz, setTextUz] = useState("");
-    const [image, setImage] = useState<File | null>(null);
-    const [instagramUrl, setInstagramUrl] = useState("");
-
-    const handleSubmit = async () => {
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('profession', profession);
-        formData.append('text_uz', textUz);
-        formData.append('text_ru', textUz); // Fallback
-        if (image) formData.append('image', image);
-        if (instagramUrl) formData.append('instagram_url', instagramUrl);
-
-        try {
-            await homepageService.createTestimonial(formData);
-            onSuccess();
-            toast.success(t('common.added'));
-        }
-        catch (error: any) {
-            console.error('Testimonial creation error:', error);
-            console.error('Error response:', error.response?.data);
-            const errorMessage = error.response?.data?.detail || error.response?.data?.error || t('common.error');
-            toast.error(errorMessage);
-        }
-    };
-
-    return (
-        <div className="space-y-4 py-4">
-            <DialogHeader><DialogTitle>{t('admin.addTestimonial')}</DialogTitle></DialogHeader>
-            <Input placeholder={t('admin.fullNamePlaceholder')} value={name} onChange={e => setName(e.target.value)} />
-            <Input placeholder={t('admin.professionPlaceHolder')} value={profession} onChange={e => setProfession(e.target.value)} />
-            <Textarea placeholder={t('admin.testimonialTextPlaceholder')} value={textUz} onChange={e => setTextUz(e.target.value)} />
-
-            <div className="grid gap-2">
-                <Label>Video muqovasi (Thumbnail)</Label>
-                <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={e => setImage(e.target.files?.[0] || null)}
-                />
-                <p className="text-xs text-muted-foreground">Video muqovasi uchun rasm yuklang</p>
-            </div>
-
-            <div className="grid gap-2">
-                <Label>Instagram Video URL</Label>
-                <Input
-                    type="url"
-                    placeholder="https://www.instagram.com/reel/..."
-                    value={instagramUrl}
-                    onChange={e => setInstagramUrl(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">Ustiga bosganda ochilishi uchun Instagram havola</p>
-            </div>
-
-            <Button onClick={handleSubmit} className="w-full">{t('admin.save')}</Button>
-        </div>
-    );
-};
 
 export default AdminHomeCMSPage;

@@ -94,6 +94,22 @@ interface Teacher {
 
 const BASE_URL = API_URL.replace('/api', '');
 
+const SocialButton = ({ icon, label, value, color }: { icon: any, label: string, value?: string, color: string }) => {
+    if (!value) return null;
+    return (
+        <a
+            href={value.startsWith('http') ? value : `https://${label.toLowerCase()}.com/${value.replace('@', '')}`}
+            target="_blank"
+            rel="noreferrer"
+            className={`${color} text-white px-5 py-3 rounded-2xl flex items-center gap-3 font-black text-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all group`}
+        >
+            <span className="w-5 h-5">{icon}</span>
+            {label}
+            <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+        </a>
+    );
+}
+
 const AdminTeachersPage = () => {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [loading, setLoading] = useState(true);
@@ -742,21 +758,5 @@ const AdminTeachersPage = () => {
         </div>
     );
 };
-
-const SocialButton = ({ icon, label, value, color }: { icon: any, label: string, value?: string, color: string }) => {
-    if (!value) return null;
-    return (
-        <a
-            href={value.startsWith('http') ? value : `https://${label.toLowerCase()}.com/${value.replace('@', '')}`}
-            target="_blank"
-            rel="noreferrer"
-            className={`${color} text-white px-5 py-3 rounded-2xl flex items-center gap-3 font-black text-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all group`}
-        >
-            <span className="w-5 h-5">{icon}</span>
-            {label}
-            <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-        </a>
-    );
-}
 
 export default AdminTeachersPage;
