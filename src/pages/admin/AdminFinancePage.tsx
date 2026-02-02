@@ -34,17 +34,7 @@ import { API_URL, getAuthHeader } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Download, DollarSign, TrendingUp, TrendingDown, Search, Loader2, MoreVertical, Eye, RefreshCcw, Trash2, BookOpen, Trophy } from "lucide-react";
 
-// Mock Finance Trend Chart component
-const FinanceTrendChart = () => (
-    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-        <h3 className="text-lg font-bold mb-4">Mablag'lar oqimi</h3>
-        <div className="h-64 bg-muted/30 rounded-xl flex items-end justify-between p-4 gap-2">
-            {[40, 60, 45, 90, 65, 80, 70].map((h, i) => (
-                <div key={i} className="bg-primary/60 w-full rounded-t-sm" style={{ height: `${h}%` }}></div>
-            ))}
-        </div>
-    </div>
-);
+import FinanceTrendChart from "@/components/admin/finance/FinanceTrendChart";
 
 interface Transaction {
     id: number;
