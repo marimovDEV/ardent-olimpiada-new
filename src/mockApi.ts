@@ -366,44 +366,88 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
         if (url.includes('/api/banners/')) return jsonResponse(MOCK_DATA.banners);
         if (url.includes('/api/gamification/dashboard/')) return jsonResponse(MOCK_GAMIFICATION_DASHBOARD);
         if (url.includes('/api/notifications/unread_count/')) return jsonResponse({ count: 3 });
+
+        // --- ADMIN & TEACHER ---
         if (url.includes('/api/admin/dashboard/overview/')) return jsonResponse({
             success: true,
-            stats: {
-                total_students: 1200,
+            kpis: {
+                total_users: 12500,
+                new_users_today: 45,
+                teachers_count: 120,
                 active_courses: 45,
-                total_revenue: 150000000,
-                pending_support: 5
-            }
+                active_olympiads: 12,
+                revenue_month: 156000000,
+                revenue_today: 5400000
+            },
+            alerts: {
+                pending_courses: 3,
+                open_tickets: 5,
+                pending_certificates: 12
+            },
+            activities: [
+                { id: 1, title: "Yangi foydalanuvchi", subtitle: "Ali Valiyev ro'yxatdan o'tdi", time: new Date(Date.now() - 1000 * 60 * 30).toISOString(), icon: "UserPlus" },
+                { id: 2, title: "Kurs sotib olindi", subtitle: "Python asoslari kursi sotildi", time: new Date(Date.now() - 1000 * 60 * 120).toISOString(), icon: "CreditCard" },
+                { id: 3, title: "Olimpiada yakunlandi", subtitle: "Matematika olimpiadasi natijalari e'lon qilindi", time: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), icon: "Trophy" }
+            ]
         });
 
+        if (url.includes('/api/admin/dashboard/chart/')) return jsonResponse({
+            success: true,
+            chart_data: [
+                { name: 'Yan', users: 400, revenue: 24000000 },
+                { name: 'Fev', users: 600, revenue: 35000000 },
+                { name: 'Mar', users: 800, revenue: 48000000 },
+                { name: 'Apr', users: 1000, revenue: 42000000 },
+                { name: 'May', users: 1200, revenue: 56000000 },
+                { name: 'Iyun', users: 1500, revenue: 68000000 }
+            ]
+        });
+
+        if (url.includes('/api/teacher/stats/')) return jsonResponse({
+            students_count: 850,
+            active_courses: 12,
+            rating: 4.8,
+            total_lessons: 145
+        });
+
+        if (url.includes('/api/users/')) {
+            const roleParam = url.includes('role=TEACHER') ? 'TEACHER' : null;
+            const mockUsers = [
+                { id: 1, username: "student_1", first_name: "Ali", last_name: "Valiyev", role: "STUDENT", is_active: true, date_joined: "2024-01-10T10:00:00Z", phone: "+998901234567" },
+                { id: 2, username: "teacher_1", first_name: "Malika", last_name: "Karimova", role: "TEACHER", is_active: true, date_joined: "2023-12-05T09:30:00Z", phone: "+998912345678", teacher_profile: { specialization: "Matematika", experience_years: 5, verification_status: "APPROVED" } },
+                { id: 3, username: "admin_1", first_name: "Aziz", last_name: "Toxirov", role: "ADMIN", is_active: true, date_joined: "2023-11-01T12:00:00Z", phone: "+998931112233" },
+                { id: 4, username: "pending_teacher", first_name: "Javohir", last_name: "Aliyev", role: "TEACHER", is_active: true, date_joined: "2024-02-01T15:00:00Z", phone: "+998944445566", teacher_profile: { specialization: "Fizika", experience_years: 3, verification_status: "PENDING" } }
+            ];
+            const filtered = roleParam ? mockUsers.filter(u => u.role === roleParam) : mockUsers;
+            return jsonResponse({ results: filtered });
+        }
+
+        if (url.includes('/api/finance/stats/')) return jsonResponse({
+            total_balance: 45000000,
+            pending_withdrawals: 12000000,
+            completed_payments: 120,
+            daily_revenue: [500000, 750000, 450000, 1200000, 800000]
+        });
+
+        if (url.includes('/api/support/tickets/')) return jsonResponse({ results: [] });
+        if (url.includes('/api/notifications/')) return jsonResponse({ results: [] });
+
         // --- AUTH ---
-        if (url.includes('/api/auth/send-code/')) {
-            return jsonResponse({ success: true, message: "Code sent" });
-        }
-        if (url.includes('/api/auth/verify-code/')) {
-            return jsonResponse({ success: true, verified: true });
-        }
-        if (url.includes('/api/auth/resend-code/')) {
-            return jsonResponse({ success: true, message: "Code resent" });
-        }
-        if (url.includes('/api/auth/complete-registration/')) {
-            return jsonResponse({ success: true, token: "mock-jwt", user: MOCK_USER_STUDENT });
-        }
-        if (url.includes('/api/auth/forgot-password/')) {
-            return jsonResponse({ success: true, message: "Reset code sent" });
-        }
-        if (url.includes('/api/auth/verify-reset-code/')) {
-            return jsonResponse({ success: true, message: "Code verified" });
-        }
+        if (url.includes('/api/auth/send-code/')) return jsonResponse({ success: true, message: "Code sent" });
+        if (url.includes('/api/auth/verify-code/')) return jsonResponse({ success: true, verified: true });
+        if (url.includes('/api/auth/resend-code/')) return jsonResponse({ success: true, message: "Code resent" });
+        if (url.includes('/api/auth/complete-registration/')) return jsonResponse({ success: true, token: "mock-jwt", user: MOCK_USER_STUDENT });
+        if (url.includes('/api/auth/forgot-password/')) return jsonResponse({ success: true, message: "Reset code sent" });
+        if (url.includes('/api/auth/verify-reset-code/')) return jsonResponse({ success: true, message: "Code verified" });
 
         if (url.includes('/api/auth/login/')) {
             const body = init?.body ? JSON.parse(init.body as string) : {};
             let user = MOCK_USER_STUDENT;
-            const username = body.username || body.phone || '';
+            const username = (body.username || body.phone || '').toLowerCase();
             if (username.includes('teacher')) user = MOCK_USER_TEACHER;
             else if (username.includes('admin')) user = MOCK_USER_ADMIN;
 
-            // For demo purposes, any password works.
+            localStorage.setItem('user', JSON.stringify(user));
             return jsonResponse({ success: true, token: "mock-jwt", user });
         }
         if (url.includes('/api/auth/me/') || url.includes('/api/auth/profile/')) {
