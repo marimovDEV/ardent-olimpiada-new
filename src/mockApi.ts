@@ -574,8 +574,8 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
             } else if (username.includes('teacher') || referer.includes('/teacher/') || url.includes('teacher')) {
                 user = MOCK_USER_TEACHER;
             } else {
-                // If the user is on the teacher login page, default to teacher role even if username is random
-                user = MOCK_USER_TEACHER;
+                // Default to student if no specific keywords or context
+                user = MOCK_USER_STUDENT;
             }
 
             localStorage.setItem('user', JSON.stringify(user));
